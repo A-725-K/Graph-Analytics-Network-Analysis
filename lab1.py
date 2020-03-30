@@ -1,7 +1,9 @@
 import time
+import collections
 import threading as th
 
 import matplotlib
+import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -29,6 +31,25 @@ def timeit(f):
     return timed_foo
 
 
+def print_statistics(values, measure, mapping):
+    max = values[-1]
+    min = values[0]
+    lst = [i for _, i in values]
+
+    print('*'*(len(measure) + 8))
+    print('*'*3 + ' ' + measure + ' ' + '*'*3)
+    print('*'*(len(measure) + 8))
+    print('\tMaximum:', max[1], '-->', mapping[max[0]])
+    print('\tMinimum:', min[1], '-->', mapping[min[0]])
+    print('\tAverage: {:.3f}'.format(sum(lst)/len(lst)))
+    print('\tVariance: {:.3f}\n'.format(np.var(lst)))
+
+
+def compute_triangles(G):
+    trg = nx.triangles(G)
+    return sum(trg.values()) // 3
+    
+
 def print_graph_info(G):
     # name
     print('/' + '*'*(len(G.name)+2) + '\\')
@@ -39,10 +60,12 @@ def print_graph_info(G):
     print('  > Nodes:', G.nnodes)
     print('  > Edges:', G.nedges)
     print('  > Type of edges:', 'Directed' if nx.is_directed(G) else 'Undirected')
-    print('  > Average degree: <k> = {:.3f}'.format(G.avg_degree))
-    print('  > Average clustering coefficient: C = {:.3f}'.format(nx.average_clustering(G)))
-    print('  > Density: rho = {:.3f}'.format(nx.density(G)))
+    print('  > Average degree:\n\t<k> = {:.3f}'.format(G.avg_degree))
+    print('  > Average clustering coefficient:\n\tC = {:.3f}'.format(nx.average_clustering(G)))
+    print('  > Density:\n\trho = {:.3f}'.format(nx.density(G)))
+    print('  > Number of triangles:', compute_triangles(G))
     print('  > Connectivity:', 'Connected' if nx.is_connected(G) else 'Disconnected')
+    print('  > Assortativity:\n\tr = {:.3f}\n'.format(nx.degree_assortativity_coefficient(G)))
 
 
 def initialize_graph():
@@ -50,7 +73,7 @@ def initialize_graph():
     G.name = GRAPH_NAME
     G.nnodes = len(G.nodes())
     G.nedges = len(G.edges())
-    G.avg_degree = 2*G.nnodes / G.nedges if not nx.is_directed(G) else G.nnodes / G.nedges
+    G.avg_degree = 2*G.nedges / G.nnodes if not nx.is_directed(G) else G.nedges / G.nnodes
     G.mapping = {}
 
     # in order to know which node corresponds to which show
@@ -70,10 +93,50 @@ def initialize_graph():
     return G
 
 
+def compute_historgram(degs_dict):
+    normalized_histogram = {}
+
+    # count frequencies
+    for deg in sorted([deg for _, deg in degs_dict]):
+        if deg in normalized_histogram:
+            normalized_histogram[deg] += 1
+        else:
+            normalized_histogram[deg] = 1
+    
+    # normalize the histogram
+    for k, v in normalized_histogram.items():
+        normalized_histogram[k] = v / len(degs_dict)
+
+    return normalized_histogram
+
+
+def degree_distribution(G):
+    print_statistics(sorted(dict(G.degree).items(), key=lambda p: p[1]), 'Degree distribution', G.mapping)
+    hist = compute_historgram(G.degree)
+
+    x = [int(k) for k in hist.keys()]
+    y = [float(v) for v in hist.values()]
+
+    # real power law
+    max_y = max(y)
+    pow_law = []
+    for i in range(1, max(x)):
+        pow_law += [i**(-1) * max_y]
+
+    plt.figure()
+    plt.title('Degree Distribution and Power Law')
+    plt.xlabel('Degree')
+    plt.ylabel('Frequency')
+    plt.bar(x, y, width=0.7, color='#FF6F00')
+    plt.plot(pow_law, 'blue', linewidth=2.5)
+    plt.savefig('imgs/deg_stribution.png')
+
+
 @timeit
 def draw_graph(G, filename):
     print('Drawing graph...')
     
+    plt.figure()
     nx.draw(G, pos=nx.kamada_kawai_layout(G), node_size=5, linewidths=0.5, node_color='blue')
     plt.suptitle(GRAPH_NAME, fontsize=12, color='#116B17')
     plt.savefig('imgs/' + filename + '.png')
@@ -93,7 +156,7 @@ def compute_distances(G):
 
     d = nx.diameter(G)
     avg_sp = nx.average_shortest_path_length(G)
-    print('  > Diameter:', d)
+    print('  > Diameter:\n\td = {}'.format(d))
     print('  > Average shortest path length: {:.3f}'.format(avg_sp))
 
 
