@@ -1,5 +1,4 @@
 import time
-import collections
 import threading as th
 
 import matplotlib
@@ -36,9 +35,9 @@ def print_statistics(values, measure, mapping):
     min = values[0]
     lst = [i for _, i in values]
 
-    print('*'*(len(measure) + 8))
-    print('*'*3 + ' ' + measure + ' ' + '*'*3)
-    print('*'*(len(measure) + 8))
+    print('#'*(len(measure) + 8))
+    print('#'*3 + ' ' + measure + ' ' + '#'*3)
+    print('#'*(len(measure) + 8))
     print('\tMaximum:', max[1], '-->', mapping[max[0]])
     print('\tMinimum:', min[1], '-->', mapping[min[0]])
     print('\tAverage: {:.3f}'.format(sum(lst)/len(lst)))
@@ -112,6 +111,7 @@ def compute_historgram(degs_dict):
 
 def degree_distribution(G):
     print_statistics(sorted(dict(G.degree).items(), key=lambda p: p[1]), 'Degree distribution', G.mapping)
+    
     hist = compute_historgram(G.degree)
 
     x = [int(k) for k in hist.keys()]
@@ -138,7 +138,7 @@ def draw_graph(G, filename):
     
     plt.figure()
     nx.draw(G, pos=nx.kamada_kawai_layout(G), node_size=5, linewidths=0.5, node_color='blue')
-    plt.suptitle(GRAPH_NAME, fontsize=12, color='#116B17')
+    plt.suptitle(GRAPH_NAME, fontsize=15, color='#116B17', x=0.69, y=0.03)
     plt.savefig('imgs/' + filename + '.png')
 
 
