@@ -44,10 +44,12 @@ def print_statistics(values, measure, mapping):
     print('\n' + '#'*(len(measure) + 8))
     print('#'*3 + ' ' + measure + ' ' + '#'*3)
     print('#'*(len(measure) + 8))
-    print('\tMaximum:', max[1], '-->', mapping[max[0]])
-    print('\tMinimum:', min[1], '-->', mapping[min[0]])
-    print('\tAverage: {:.3f}'.format(sum(lst)/len(lst)))
-    print('\tVariance: {:.3f}\n'.format(np.var(lst)))
+    print('\t+++')
+    print('\t |- Maximum:', max[1], '--> (', mapping[max[0]], ')')
+    print('\t |- Minimum:', min[1], '--> (', mapping[min[0]], ')')
+    print('\t |- Average: {}'.format(sum(lst)/len(lst)))
+    print('\t |- Variance: {}'.format(np.var(lst)))
+    print('\t+++\n')
 
 
 def plot_metrics(measure, label, color, samples=SAMPLES, xlabel='nodes'):
@@ -98,13 +100,13 @@ def plot_hits(hubs, authorities, label, color, samples=SAMPLES, threshold=1e-3):
         x_lab += ['{}\n{}'.format(xs_h[i], xs_a[i])]
     
     plt.figure()
-    plt.suptitle('Hits', fontsize=16)
     _, ax = plt.subplots()
     width = 0.35
     
     ax.bar(ind, ys_h, width=width, label=label_h, color=color_h)
     ax.bar([i + width for i in ind], ys_a, width=width, label=label_a, color=color_a)
 
+    ax.set_title('Hits')
     ax.set_xlabel('nodes')
     ax.legend()
     ax.autoscale_view()
@@ -294,7 +296,7 @@ def main():
     diameter_thread.start()
     draw_thread.start()
 
-    # wait for all threads to terminate, due to plt sharing
+    # # wait for all threads to terminate, due to plt sharing
     diameter_thread.join()
     draw_thread.join()
 
