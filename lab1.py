@@ -9,9 +9,11 @@ import matplotlib.pyplot as plt
 
 SAMPLES = 25
 EXT = '.png'
+IMG_DIR = 'imgs/'
 DATASET_FILE = 'datasets/fb-pages-tvshow.edges'
 MAPPING_FILE = 'datasets/fb-pages-tvshow.nodes'
 GRAPH_NAME = 'American TV Shows Facebook pages'
+LAYOUT = None
 
 
 def get_show(mapping, key):
@@ -36,14 +38,18 @@ def timeit(f):
     return timed_foo
 
 
+def print_title(title):
+    print('\n' + '#'*(len(title) + 8))
+    print('#'*3 + ' ' + title + ' ' + '#'*3)
+    print('#'*(len(title) + 8))
+
+
 def print_statistics(values, measure, mapping):
     max = values[-1]
     min = values[0]
     lst = [i for _, i in values]
 
-    print('\n' + '#'*(len(measure) + 8))
-    print('#'*3 + ' ' + measure + ' ' + '#'*3)
-    print('#'*(len(measure) + 8))
+    print_title(measure)
     print('\t+++')
     print('\t |- Maximum:', max[1], '--> (', mapping[max[0]], ')')
     print('\t |- Minimum:', min[1], '--> (', mapping[min[0]], ')')
@@ -67,7 +73,7 @@ def plot_metrics(measure, label, color, samples=SAMPLES, xlabel='nodes'):
         plt.xticks(ind, xs, rotation=90)
 
     plt.tight_layout()
-    plt.savefig('imgs/' + label + EXT)
+    plt.savefig(IMG_DIR + label + EXT)
 
 
 def plot_hits(hubs, authorities, label, color, samples=SAMPLES, threshold=1e-3):
@@ -111,7 +117,7 @@ def plot_hits(hubs, authorities, label, color, samples=SAMPLES, threshold=1e-3):
     ax.legend()
     ax.autoscale_view()
     plt.xticks(ind, x_lab, rotation=90, fontsize='xx-small')
-    plt.savefig('imgs/hits' + EXT)
+    plt.savefig(IMG_DIR + 'hits' + EXT)
 
 
 def compute_metrics(G, metrics, plot=False):
@@ -246,17 +252,23 @@ def degree_distribution(G):
     plt.ylabel('Frequency')
     plt.bar(x, y, width=0.7, color='#FF6F00')
     plt.plot(pow_law, 'blue', linewidth=2.5)
-    plt.savefig('imgs/deg_stribution' + EXT)
+    plt.savefig(IMG_DIR + 'deg_stribution' + EXT)
 
 
 @timeit
+def compute_layout(G):
+    print('Computing graph layout...')
+    global LAYOUT
+    LAYOUT = nx.kamada_kawai_layout(G)
+
+
 def draw_graph(G, filename):
-    print('Drawing graph...')
+    global LAYOUT
     
     plt.figure()
-    nx.draw(G, pos=nx.kamada_kawai_layout(G), node_size=5, linewidths=0.5, node_color='blue')
+    nx.draw(G, pos=LAYOUT, node_size=10, width=0.3, node_color='blue')
     plt.suptitle(GRAPH_NAME, fontsize=15, color='#116B17', x=0.69, y=0.05)
-    plt.savefig('imgs/' + filename + EXT)
+    plt.savefig(IMG_DIR + filename + EXT)
 
 
 @timeit
@@ -273,13 +285,55 @@ def compute_distances(G):
 
     d = nx.diameter(G)
     avg_sp = nx.average_shortest_path_length(G)
+    
     print('  > Diameter:\n\td = {}'.format(d))
     print('  > Average shortest path length: {:.3f}'.format(avg_sp))
+    return d, avg_sp
+
+
+def assortativity_matrix(G):
+    ass_matrix = nx.degree_mixing_matrix(G)
+
+    fig = plt.figure()
+    plt.title('Degree mixing matrix')
+    plt.tight_layout()
+    ax = plt.imshow(ass_matrix, cmap='coolwarm', interpolation='nearest', origin='lower')
+    fig.colorbar(ax, label='\nDegree Correlation Matrix')
+    plt.savefig(IMG_DIR + 'deg_mix' + EXT)
+
+
+def analyze_communities(G):
+    global LAYOUT
+
+    # Clauset-Newman-Moor algorithm to detect communities
+    communities = nx.algorithms.community.greedy_modularity_communities(G)
+
+    print_title('Communities')
+    print('\t+++')
+    print('\t |- Communities:', len(communities))
+    print('\t |- Performance:\n p = ', nx.algorithms.community.quality.performance(G, communities))
+    print('\t+++')
+
+    comm_colors = []
+    for n in G.nodes():
+        for idx, comm in enumerate(communities):
+            if n in comm:
+                comm_colors += [idx]
+                break
+    max_col = len(np.unique(comm_colors))
+
+    plt.figure()
+    plt.title('Communities')
+    nx.draw_networkx(G, pos=LAYOUT, node_color=comm_colors, cmap='rainbow', vmin = 1, vmax=max_col, node_size=10, width=0.1, with_labels=False)
+    plt.tight_layout()
+    plt.savefig(IMG_DIR + 'communities' + EXT)
 
 
 @timeit
 def main():
     G = initialize_graph()
+
+    ## create a new random graph for debug purpose
     # G = nx.gnp_random_graph(30, 0.2)
     # G.mapping = {}
     # G.nnodes = len(G.nodes())
@@ -289,19 +343,22 @@ def main():
 
     print_graph_info(G)
 
-    draw_thread = th.Thread(target=draw_graph, args=(G, 'big_graph',))
+    layout_thread = th.Thread(target=compute_layout, args=(G,))
     diameter_thread = th.Thread(target=compute_distances, args=(G,))
     
     # heavy computation done in parallel
     diameter_thread.start()
-    draw_thread.start()
+    layout_thread.start()
 
-    # # wait for all threads to terminate, due to plt sharing
+    # wait for all threads to terminate, due to plt sharing
     diameter_thread.join()
-    draw_thread.join()
+    layout_thread.join()
 
     # centrality measures and graph exploration
+    draw_graph(G, 'big_graph')
     degree_distribution(G)
+    assortativity_matrix(G)
+    analyze_communities(G)
     compute_metrics(G, 'clustering', True)
     compute_metrics(G, 'hits', True)
     compute_metrics(G, 'pagerank', True)
