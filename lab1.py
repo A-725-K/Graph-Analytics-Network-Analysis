@@ -7,17 +7,26 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 
-SAMPLES = 25
-EXT = '.png'
-IMG_DIR = 'imgs/'
+SAMPLES      = 25
+EXT          = '.png'
+IMG_DIR      = 'imgs/'
 DATASET_FILE = 'datasets/fb-pages-tvshow.edges'
 MAPPING_FILE = 'datasets/fb-pages-tvshow.nodes'
-GRAPH_NAME = 'American TV Shows Facebook pages'
-LAYOUT = None
+GRAPH_NAME   = 'American TV Shows Facebook pages'
+LAYOUT       = None
+
+# to prettify the output
+RED    = '\033[91m'
+BLUE   = '\033[94m'
+GREEN  = '\033[32m'
+YELLOW = '\033[93m'
+WHITE  = '\033[97m'
+PURPLE = '\033[95m'
+RESET  = '\033[0m'
 
 
-def get_show(mapping, key):
-    print('Node {} is the show: {}'.format(key, mapping[key]))
+#def get_show(mapping, key):
+#    print('Node {} is the show: {}'.format(key, mapping[key]))
 
 
 def format_time(t):
@@ -32,16 +41,16 @@ def timeit(f):
         start = time.time()
         ret_val = f(*args, **kw)
         end = time.time()
-        print('Function [{}]\telapsed time: {}'.format(f.__name__, format_time(end - start)))
+        print(YELLOW + 'Function [{}]\telapsed time: {}'.format(f.__name__, BLUE + format_time(end - start)) + RESET)
         return ret_val
 
     return timed_foo
 
 
 def print_title(title):
-    print('\n' + '#'*(len(title) + 8))
-    print('#'*3 + ' ' + title + ' ' + '#'*3)
-    print('#'*(len(title) + 8))
+    print('\n' + BLUE + '#'*(len(title) + 8))
+    print(BLUE + '#'*3 + ' ' + YELLOW + title + ' ' + BLUE + '#'*3)
+    print(BLUE + '#'*(len(title) + 8) + RESET)
 
 
 def print_statistics(values, measure, mapping):
@@ -50,12 +59,12 @@ def print_statistics(values, measure, mapping):
     lst = [i for _, i in values]
 
     print_title(measure)
-    print('\t+++')
-    print('\t |- Maximum:', max[1], '--> (', mapping[max[0]], ')')
-    print('\t |- Minimum:', min[1], '--> (', mapping[min[0]], ')')
-    print('\t |- Average: {}'.format(sum(lst)/len(lst)))
-    print('\t |- Variance: {}'.format(np.var(lst)))
-    print('\t+++\n')
+    print(RED + '\t+++')
+    print(RED + '\t |- ' + YELLOW + 'Maximum:', WHITE + str(max[1]), '--> (', mapping[max[0]], ')')
+    print(RED + '\t |- ' + YELLOW + 'Minimum:', WHITE + str(min[1]), '--> (', mapping[min[0]], ')')
+    print(RED + '\t |- ' + YELLOW + 'Average: {}'.format(WHITE + str(sum(lst)/len(lst))))
+    print(RED + '\t |- ' + YELLOW + 'Variance: {}'.format(WHITE + str(np.var(lst))))
+    print(RED + '\t+++\n' + RESET)
 
 
 def plot_metrics(measure, label, color, samples=SAMPLES, xlabel='nodes'):
@@ -155,7 +164,7 @@ def compute_metrics(G, metrics, plot=False):
 
         return (hubs, authorities)
     else:
-        print('ERROR: Metric "{}" does not implemented !'.format(metrics))
+        print(RED + 'ERROR: Metric "{}" does not implemented !'.format(metrics) + RESET)
         exit(1)
     
     if plot:
@@ -173,21 +182,21 @@ def compute_triangles(G):
 
 def print_graph_info(G):
     # name
-    print('/' + '*'*(len(G.name)+2) + '\\')
-    print('|', G.name, '|')
-    print('\\' + '*'*(len(G.name)+2) + '/\n')
+    print(PURPLE + '/' + '*'*(len(G.name)+2) + '\\')
+    print(PURPLE + '|', YELLOW + G.name, PURPLE + '|')
+    print(PURPLE + '\\' + '*'*(len(G.name)+2) + '/\n')
 
     # graph info
-    print('  > Nodes:', G.nnodes)
-    print('  > Edges:', G.nedges)
-    print('  > Type of edges:', 'Directed' if nx.is_directed(G) else 'Undirected')
-    print('  > Average degree:\n\t<k> = {:.3f}'.format(G.avg_degree))
-    print('  > Average clustering coefficient:\n\tC = {:.3f}'.format(nx.average_clustering(G)))
-    print('  > Density:\n\trho = {:.3f}'.format(nx.density(G)))
-    print('  > Number of triangles:', compute_triangles(G))
-    print('  > Connectivity:', 'Connected' if nx.is_connected(G) else 'Disconnected')
-    print('  > Assortativity:\n\tr = {:.3f}'.format(nx.degree_assortativity_coefficient(G)))
-    print('  > Giant component coverage: {:.2f}%\n'.format(max([len(cc) for cc in nx.connected_components(G)])/G.nnodes*100))
+    print(RED + '  > ' + BLUE + 'Nodes:' + WHITE, G.nnodes)
+    print(RED + '  > ' + BLUE + 'Edges:' + WHITE, G.nedges)
+    print(RED + '  > ' + BLUE + 'Type of edges:' + WHITE, 'Directed' if nx.is_directed(G) else 'Undirected')
+    print(RED + '  > ' + BLUE + 'Average degree:\n\t<k> = ' + WHITE + '{:.3f}'.format(G.avg_degree))
+    print(RED + '  > ' + BLUE + 'Average clustering coefficient:\n\tC = ' + WHITE + '{:.3f}'.format(nx.average_clustering(G)))
+    print(RED + '  > ' + BLUE + 'Density:\n\trho = ' + WHITE + '{:.3f}'.format(nx.density(G)))
+    print(RED + '  > ' + BLUE + 'Number of triangles:' + WHITE, compute_triangles(G))
+    print(RED + '  > ' + BLUE + 'Connectivity:' + WHITE, 'Connected' if nx.is_connected(G) else 'Disconnected')
+    print(RED + '  > ' + BLUE + 'Assortativity:\n\tr = ' + WHITE + '{:.3f}'.format(nx.degree_assortativity_coefficient(G)))
+    print(RED + '  > ' + BLUE + 'Giant component coverage: ' + WHITE + '{:.2f}%\n'.format(max([len(cc) for cc in nx.connected_components(G)])/G.nnodes*100) + RESET)
 
 
 def initialize_graph():
@@ -257,7 +266,7 @@ def degree_distribution(G):
 
 @timeit
 def compute_layout(G):
-    print('Computing graph layout...')
+    print(GREEN + 'Computing graph layout...' + RESET)
     global LAYOUT
     LAYOUT = nx.kamada_kawai_layout(G)
 
@@ -273,11 +282,11 @@ def draw_graph(G, filename):
 
 @timeit
 def compute_distances(G):
-    print('Computing diameter of the graph...')
-    print('Computing average shortest path length of the graph...')
+    print(GREEN + 'Computing diameter of the graph...')
+    print(GREEN + 'Computing average shortest path length of the graph...' + RESET)
 
     if not nx.is_connected(G):
-        print('Graph not connected, considering its giant component...')
+        print(RED + '[!!] Graph not connected, considering its giant component...' + RESET)
         ccs = [G.subgraph(cc) for cc in nx.connected_components(G)]
         ccs_sz = [len(cc) for cc in ccs]
         max_idx = ccs_sz.index(max(ccs_sz))
@@ -286,8 +295,8 @@ def compute_distances(G):
     d = nx.diameter(G)
     avg_sp = nx.average_shortest_path_length(G)
     
-    print('  > Diameter:\n\td = {}'.format(d))
-    print('  > Average shortest path length: {:.3f}'.format(avg_sp))
+    print(RED + '  > ' + BLUE + 'Diameter:\n\td = ' + WHITE + str(d))
+    print(RED + '  > ' + BLUE + 'Average shortest path length: ' + WHITE + '{:.3f}'.format(avg_sp) + RESET)
     return d, avg_sp
 
 
@@ -295,7 +304,7 @@ def assortativity_matrix(G):
     ass_matrix = nx.degree_mixing_matrix(G)
 
     fig = plt.figure()
-    plt.title('Degree mixing matrix')
+    plt.title('Degree Mixing Analysis')
     plt.tight_layout()
     ax = plt.imshow(ass_matrix, cmap='coolwarm', interpolation='nearest', origin='lower')
     fig.colorbar(ax, label='\nDegree Correlation Matrix')
@@ -309,10 +318,10 @@ def analyze_communities(G):
     communities = nx.algorithms.community.greedy_modularity_communities(G)
 
     print_title('Communities')
-    print('\t+++')
-    print('\t |- Communities:', len(communities))
-    print('\t |- Performance:\n p = ', nx.algorithms.community.quality.performance(G, communities))
-    print('\t+++')
+    print(RED + '\t+++')
+    print(RED + '\t |- ' + YELLOW + 'Communities:' + WHITE, len(communities))
+    print(RED + '\t |- ' + YELLOW + 'Performance: p = ' + WHITE, nx.algorithms.community.quality.performance(G, communities))
+    print(RED + '\t+++' + RESET)
 
     comm_colors = []
     for n in G.nodes():
