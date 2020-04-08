@@ -26,7 +26,7 @@ RESET  = '\033[0m'
 
 
 #def get_show(mapping, key):
-#    print('Node {} is the show: {}'.format(key, mapping[key]))
+#    print(PURPLE + 'Node {} is the show: {}'.format(key, mapping[key]) + RESET)
 
 
 def format_time(t):
@@ -320,7 +320,7 @@ def analyze_communities(G):
     print_title('Communities')
     print(RED + '\t+++')
     print(RED + '\t |- ' + YELLOW + 'Communities:' + WHITE, len(communities))
-    print(RED + '\t |- ' + YELLOW + 'Performance: p = ' + WHITE, nx.algorithms.community.quality.performance(G, communities))
+    print(RED + '\t |- ' + YELLOW + 'Performance: p =' + WHITE, nx.algorithms.community.quality.performance(G, communities))
     print(RED + '\t+++' + RESET)
 
     comm_colors = []
