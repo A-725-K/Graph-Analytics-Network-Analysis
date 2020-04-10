@@ -1,3 +1,4 @@
+import sys
 import time
 import threading as th
 
@@ -23,10 +24,6 @@ YELLOW = '\033[93m'
 WHITE  = '\033[97m'
 PURPLE = '\033[95m'
 RESET  = '\033[0m'
-
-
-#def get_show(mapping, key):
-#    print(PURPLE + 'Node {} is the show: {}'.format(key, mapping[key]) + RESET)
 
 
 def format_time(t):
@@ -319,8 +316,9 @@ def analyze_communities(G):
 
     print_title('Communities')
     print(RED + '\t+++')
-    print(RED + '\t |- ' + YELLOW + 'Communities:' + WHITE, len(communities))
+    print(RED + '\t |- ' + YELLOW + 'Number of Communities:' + WHITE, len(communities))
     print(RED + '\t |- ' + YELLOW + 'Performance: p =' + WHITE, nx.algorithms.community.quality.performance(G, communities))
+    print(RED + '\t |- ' + YELLOW + 'Modularity: Q =' + WHITE, nx.algorithms.community.quality.modularity(G, communities))
     print(RED + '\t+++' + RESET)
 
     comm_colors = []
@@ -373,10 +371,38 @@ def main():
     compute_metrics(G, 'pagerank', True)
     compute_metrics(G, 'betweenness', True)
     compute_metrics(G, 'closeness', True)
+
+
+def interactive_main():
+    G = initialize_graph()
+    
+    while True:
+        user_input = input('{}Tell me which node you want to know [0-{}] (END to exit):{}\t'.format(BLUE, G.nnodes-1, RESET))
+        if user_input == 'END':
+            break
+        
+        try:
+            choice = int(user_input)    
+            print(PURPLE + 'Node {} is the show:'.format(choice) + YELLOW + '\t' + G.mapping[choice] + RESET)
+        except Exception as _:
+            continue
     
 
 if __name__ == "__main__":
-    matplotlib.use('Agg') # to avoid concurrency problem with matplotlib,
-                          # run non graphical thread in background instead
-                          # (cannot show plots, only save images on file)
-    main()
+    args = sys.argv
+    argc = len(args)
+    
+    if argc > 2 or argc == 0:
+        exit(RED + 'Usage: python3 lab1.py [--interactive]' + RESET)
+    
+    elif argc == 2:
+        if args[1] != '--interactive':
+            exit(RED + 'Usage: python3 lab1.py [--interactive]' + RESET)
+
+        interactive_main()
+    
+    else:
+        matplotlib.use('Agg')   # to avoid concurrency problem with matplotlib,
+                                # run non graphical thread in background instead
+                                # (cannot show plots, only save images on file)
+        main()
