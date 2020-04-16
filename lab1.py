@@ -145,6 +145,7 @@ def compute_metrics(G, metrics, plot=False):
 
         if plot:
             m = sorted(m.items(), key=lambda p: p[1])
+            print_statistics(m, metrics.title(), G.mapping)
             plot_metrics(m, metrics, color, samples=len(m))
             
         return m
@@ -166,7 +167,7 @@ def compute_metrics(G, metrics, plot=False):
     
     if plot:
         m = sorted(m.items(), key=lambda p: p[1])
-        print_statistics(m, metrics, G.mapping)
+        print_statistics(m, metrics.title(), G.mapping)
         plot_metrics(m, metrics, color)
     
     return m
@@ -258,7 +259,7 @@ def degree_distribution(G):
     plt.ylabel('Frequency')
     plt.bar(x, y, width=0.7, color='#FF6F00')
     plt.plot(pow_law, 'blue', linewidth=2.5)
-    plt.savefig(IMG_DIR + 'deg_stribution' + EXT)
+    plt.savefig(IMG_DIR + 'deg_distribution' + EXT)
 
 
 @timeit
@@ -311,7 +312,7 @@ def assortativity_matrix(G):
 def analyze_communities(G):
     global LAYOUT
 
-    # Clauset-Newman-Moor algorithm to detect communities
+    # Clauset-Newman-Moore algorithm to detect communities
     communities = nx.algorithms.community.greedy_modularity_communities(G)
 
     print_title('Communities')
