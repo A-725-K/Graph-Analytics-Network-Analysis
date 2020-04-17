@@ -1,6 +1,24 @@
-import time
-
 from .common import *
+
+
+def print_title(title):
+    print('\n' + BLUE + '#'*(len(title) + 8))
+    print(BLUE + '#'*3 + ' ' + YELLOW + title + ' ' + BLUE + '#'*3)
+    print(BLUE + '#'*(len(title) + 8) + RESET)
+
+
+def print_statistics(values, measure, mapping):
+    max = values[-1]
+    min = values[0]
+    lst = [i for _, i in values]
+
+    print_title(measure)
+    print(RED + '\t+++')
+    print(RED + '\t |- ' + YELLOW + 'Maximum:', WHITE + str(max[1]), '--> (', mapping[max[0]], ')')
+    print(RED + '\t |- ' + YELLOW + 'Minimum:', WHITE + str(min[1]), '--> (', mapping[min[0]], ')')
+    print(RED + '\t |- ' + YELLOW + 'Average: {}'.format(WHITE + str(sum(lst)/len(lst))))
+    print(RED + '\t |- ' + YELLOW + 'Variance: {}'.format(WHITE + str(np.var(lst))))
+    print(RED + '\t+++\n' + RESET)
 
 
 def format_time(t):

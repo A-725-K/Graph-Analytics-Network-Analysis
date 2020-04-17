@@ -1,29 +1,9 @@
 from .common import *
-from .general_utils import timeit
+from .general_utils import timeit, print_title, print_statistics
 
 
 SAMPLES = 25
 LAYOUT  = None
-
-
-def print_title(title):
-    print('\n' + BLUE + '#'*(len(title) + 8))
-    print(BLUE + '#'*3 + ' ' + YELLOW + title + ' ' + BLUE + '#'*3)
-    print(BLUE + '#'*(len(title) + 8) + RESET)
-
-
-def print_statistics(values, measure, mapping):
-    max = values[-1]
-    min = values[0]
-    lst = [i for _, i in values]
-
-    print_title(measure)
-    print(RED + '\t+++')
-    print(RED + '\t |- ' + YELLOW + 'Maximum:', WHITE + str(max[1]), '--> (', mapping[max[0]], ')')
-    print(RED + '\t |- ' + YELLOW + 'Minimum:', WHITE + str(min[1]), '--> (', mapping[min[0]], ')')
-    print(RED + '\t |- ' + YELLOW + 'Average: {}'.format(WHITE + str(sum(lst)/len(lst))))
-    print(RED + '\t |- ' + YELLOW + 'Variance: {}'.format(WHITE + str(np.var(lst))))
-    print(RED + '\t+++\n' + RESET)
 
 
 def plot_metrics(measure, label, color, samples=SAMPLES, xlabel='nodes'):
@@ -104,15 +84,8 @@ def compute_metrics(G, metrics, plot=False):
     elif metrics == 'clustering':
         m = nx.clustering(G)
         color = 'purple'
-
-        if plot:
-            m = sorted(m.items(), key=lambda p: p[1])
-            print_statistics(m, metrics.title(), G.mapping)
-            plot_metrics(m, metrics, color, samples=len(m))
-            
-        return m
     elif metrics == 'hits':
-        (hubs, authorities) = nx.hits(G, max_iter=100, tol=1e-03, normalized=True)
+        (hubs, authorities) = nx.hits(G, max_iter=5000, tol=1e-03, normalized=True)
         color = 'blue orange'
         if plot:
             h_s = sorted(hubs.items(), key=lambda p: p[1])
@@ -121,7 +94,7 @@ def compute_metrics(G, metrics, plot=False):
             print_statistics(h_s, 'Hubs', G.mapping)
             print_statistics(a_s, 'Authorities', G.mapping)
             plot_hits(hubs, authorities, 'Hubs Authorities', color, samples=20)
-
+        
         return (hubs, authorities)
     else:
         print(RED + 'ERROR: Metric "{}" does not implemented !'.format(metrics) + RESET)
@@ -130,15 +103,19 @@ def compute_metrics(G, metrics, plot=False):
     if plot:
         m = sorted(m.items(), key=lambda p: p[1])
         print_statistics(m, metrics.title(), G.mapping)
-        plot_metrics(m, metrics, color)
+        if metrics == 'clustering':
+            plot_metrics(m, metrics, color, samples=len(m))
+        else:
+            plot_metrics(m, metrics, color)
     
     return m
 
 
-@timeit
-def compute_distances(G):
-    print(GREEN + 'Computing diameter of the graph...')
-    print(GREEN + 'Computing average shortest path length of the graph...' + RESET)
+#@timeit
+def compute_distances(G, show=True):
+    if show:
+        print(GREEN + 'Computing diameter of the graph...')
+        print(GREEN + 'Computing average shortest path length of the graph...' + RESET)
 
     if not nx.is_connected(G):
         print(RED + '[!!] Graph not connected, considering its giant component...' + RESET)
@@ -150,8 +127,10 @@ def compute_distances(G):
     d = nx.diameter(G)
     avg_sp = nx.average_shortest_path_length(G)
     
-    print(RED + '  > ' + BLUE + 'Diameter:\n\td = ' + WHITE + str(d))
-    print(RED + '  > ' + BLUE + 'Average shortest path length: ' + WHITE + '{:.3f}'.format(avg_sp) + RESET)
+    if show:
+        print(RED + '  > ' + BLUE + 'Diameter:\n\td = ' + WHITE + str(d))
+        print(RED + '  > ' + BLUE + 'Average shortest path length: ' + WHITE + '{:.3f}'.format(avg_sp) + RESET)
+
     return d, avg_sp
 
 
@@ -162,12 +141,12 @@ def compute_layout(G):
     LAYOUT = nx.kamada_kawai_layout(G)
 
 
-def draw_graph(G, filename):
+def draw_graph(G, filename, name=GRAPH_NAME, node_col='blue'):
     global LAYOUT
     
     plt.figure()
-    nx.draw(G, pos=LAYOUT, node_size=10, width=0.3, node_color='blue')
-    plt.suptitle(GRAPH_NAME, fontsize=15, color='#116B17', x=0.69, y=0.05)
+    nx.draw(G, pos=LAYOUT, node_size=10, width=0.3, node_color=node_col)
+    plt.suptitle(name, fontsize=15, color='#116B17', x=0.69, y=0.05)
     plt.savefig(IMG_DIR + filename + EXT)
 
 

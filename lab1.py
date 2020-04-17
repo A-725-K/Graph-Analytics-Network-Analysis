@@ -1,5 +1,3 @@
-import sys
-
 import matplotlib
 
 from lib.common import *
