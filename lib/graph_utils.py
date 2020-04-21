@@ -6,6 +6,34 @@ SAMPLES = 25
 LAYOUT  = None
 
 
+def analyze_communities(G):
+    global LAYOUT
+
+    # Clauset-Newman-Moore algorithm to detect communities
+    communities = nx.algorithms.community.greedy_modularity_communities(G)
+
+    print_title('Communities')
+    print(RED + '\t+++')
+    print(RED + '\t |- ' + YELLOW + 'Number of Communities:' + WHITE, len(communities))
+    print(RED + '\t |- ' + YELLOW + 'Performance: p =' + WHITE, nx.algorithms.community.quality.performance(G, communities))
+    print(RED + '\t |- ' + YELLOW + 'Modularity: Q =' + WHITE, nx.algorithms.community.quality.modularity(G, communities))
+    print(RED + '\t+++' + RESET)
+
+    comm_colors = []
+    for n in G.nodes():
+        for idx, comm in enumerate(communities):
+            if n in comm:
+                comm_colors += [idx]
+                break
+    max_col = len(np.unique(comm_colors))
+
+    plt.figure()
+    plt.title('Communities')
+    nx.draw_networkx(G, pos=LAYOUT, node_color=comm_colors, cmap='rainbow', vmin = 1, vmax=max_col, node_size=10, width=0.1, with_labels=False)
+    plt.tight_layout()
+    plt.savefig(IMG_DIR + 'communities' + EXT)
+    
+
 def plot_metrics(measure, label, color, samples=SAMPLES, xlabel='nodes'):
     measure = measure[-samples:][::-1]
     [xs, ys] = zip(*measure)
@@ -85,7 +113,7 @@ def compute_metrics(G, metrics, plot=False):
         m = nx.clustering(G)
         color = 'purple'
     elif metrics == 'hits':
-        (hubs, authorities) = nx.hits(G, max_iter=5000, tol=1e-03, normalized=True)
+        (hubs, authorities) = nx.hits(G, max_iter=5000, tol=1e-02, normalized=True)
         color = 'blue orange'
         if plot:
             h_s = sorted(hubs.items(), key=lambda p: p[1])
@@ -143,11 +171,13 @@ def compute_layout(G):
 
 def draw_graph(G, filename, name=GRAPH_NAME, node_col='blue'):
     global LAYOUT
+    print(YELLOW + '++++++++++++++++++++++++ Drawing ' + filename + '...' + RESET)
     
     plt.figure()
     nx.draw(G, pos=LAYOUT, node_size=10, width=0.3, node_color=node_col)
     plt.suptitle(name, fontsize=15, color='#116B17', x=0.69, y=0.05)
     plt.savefig(IMG_DIR + filename + EXT)
+    plt.close()
 
 
 def generate_random_graph(N, p):

@@ -80,34 +80,6 @@ def assortativity_matrix(G):
     plt.savefig(IMG_DIR + 'deg_mix' + EXT)
 
 
-def analyze_communities(G):
-    global LAYOUT
-
-    # Clauset-Newman-Moore algorithm to detect communities
-    communities = nx.algorithms.community.greedy_modularity_communities(G)
-
-    print_title('Communities')
-    print(RED + '\t+++')
-    print(RED + '\t |- ' + YELLOW + 'Number of Communities:' + WHITE, len(communities))
-    print(RED + '\t |- ' + YELLOW + 'Performance: p =' + WHITE, nx.algorithms.community.quality.performance(G, communities))
-    print(RED + '\t |- ' + YELLOW + 'Modularity: Q =' + WHITE, nx.algorithms.community.quality.modularity(G, communities))
-    print(RED + '\t+++' + RESET)
-
-    comm_colors = []
-    for n in G.nodes():
-        for idx, comm in enumerate(communities):
-            if n in comm:
-                comm_colors += [idx]
-                break
-    max_col = len(np.unique(comm_colors))
-
-    plt.figure()
-    plt.title('Communities')
-    nx.draw_networkx(G, pos=LAYOUT, node_color=comm_colors, cmap='rainbow', vmin = 1, vmax=max_col, node_size=10, width=0.1, with_labels=False)
-    plt.tight_layout()
-    plt.savefig(IMG_DIR + 'communities' + EXT)
-
-
 @timeit
 def main():
     G = initialize_graph()
