@@ -49,13 +49,13 @@ def update_trend(G, n, n0, results):
 
 def adjust_how_much(n):
     if n > 1500:
-        return 200
-    if n > 800:
         return 100
-    if n > 400:
+    if n > 800:
         return 50
-    if n > 200:
+    if n > 400:
         return 10
+    # if n > 200:
+    #     return 10
     return 1
 
 
@@ -101,6 +101,8 @@ def attack_network(G, atk_type, results, n0):
 
         if iterations % 10 == 0:
             print('\nAttack type: {}\t\tIteration: {}\t\t|V| = {}'.format(atk_type, iterations, n))
+
+        if iterations % 2 == 0:    
             graphs_for_videos[img_idx] = G.copy()
             img_idx += 1
 
@@ -117,7 +119,7 @@ def make_videos():
 
     for m, res in GLOBAL_RESULTS.items():
         for idx, g in res['graphs'].items():
-            draw_graph(g, ATK_VID_DIR + '{}{:04d}'.format(m, idx), m.title() + ' Attack', METRIC_COLOR[m])
+            draw_graph(g, ATK_VID_DIR + '{}{:04d}'.format(m, idx), m.title() + ' Attack', METRIC_COLOR[m] if m != 'hits' else METRIC_COLOR[m].split(' ')[0])
 
 
 def runnable(G, atk, lock, init, n0):
@@ -153,6 +155,8 @@ def parallelize_attacks(G, attacks):
     IS_FINISHED = True
 
     dot_th.join()
+    
+    # for DEBUG purpose
     # print('\n', GLOBAL_RESULTS)
 
 
@@ -194,22 +198,21 @@ def compare_distances(measure, diameter, avg_k, avg_sp):
 
 def compare_attacks(attacks):
     legend_labels = attacks.keys()
-    print(attacks)
 
     plt.figure()
     plt.title('Comparison of Attacks')
     plt.xlabel('#iterations')
     plt.ylabel('dim of GC [#nodes]')
     for m, atk in attacks.items():
-        plt.plot(atk, color=METRIC_COLOR[m] if m != 'hits' else METRIC_COLOR[m].split(' ')[0])
+        plt.plot(atk, color=(METRIC_COLOR[m] if m != 'hits' else METRIC_COLOR[m].split(' ')[0]))
     plt.grid()
     plt.tight_layout()
     plt.legend(legend_labels, loc='best', fancybox=True, shadow=True)
-    plt.show()
+    plt.savefig(ATK_DIR + 'all' + EXT)
     plt.close()
 
 
-def plot_results():
+def plot_attack_results():
     global GLOBAL_RESULTS
 
     all_atks = {}
@@ -224,26 +227,26 @@ def plot_results():
 def main():
     print_title('Network Robustness')
 
-    # G = initialize_graph()
+    G = initialize_graph()
 
-    G = nx.Graph()
-    n = 100
-    p = 0.05
-    G.name = 'Random Graph, N = {}, p = {}'.format(n, p)
-    fst = True
-    while len(G) < 1 or not nx.is_connected(G):
-        G = generate_random_graph(n, p)
-        if not fst:
-            print(RED + 'The graph is not connected... Trying again...' + RESET)
-        fst = False
-    print(PURPLE + '\n\tN = {}\t\tlog(N) = {:.3f}\t\tlog(N)/N = {:.3f}\tp = {:.2f}\n'.format(n, np.log(n), np.log(n)/n, p) + RESET)
+    # G = nx.Graph()
+    # n = 100
+    # p = 0.05
+    # G.name = 'Random Graph, N = {}, p = {}'.format(n, p)
+    # fst = True
+    # while len(G) < 1 or not nx.is_connected(G):
+    #     G = generate_random_graph(n, p)
+    #     if not fst:
+    #         print(RED + 'The graph is not connected... Trying again...' + RESET)
+    #     fst = False
+    # print(PURPLE + '\n\tN = {}\t\tlog(N) = {:.3f}\t\tlog(N)/N = {:.3f}\tp = {:.2f}\n'.format(n, np.log(n), np.log(n)/n, p) + RESET)
     
     compute_layout(G)
 
     attacks = ['random', 'hits', 'closeness', 'betweenness', 'pagerank', 'clustering']
     parallelize_attacks(G, attacks)
-    plot_results()
-    # make_videos()
+    plot_attack_results()
+    make_videos()
 
 
 if __name__ == '__main__':
