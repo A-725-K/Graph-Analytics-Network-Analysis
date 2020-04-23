@@ -98,30 +98,30 @@ def plot_hits(hubs, authorities, label, color, samples=SAMPLES, threshold=1e-3):
 
 def compute_metrics(G, metrics, plot=False):
     m = {}
-    color = ''
+    # color = ''
 
     if metrics == 'betweenness':
         m = nx.betweenness_centrality(G)
-        color = 'black' 
+        # color = 'black' 
     elif metrics == 'closeness':
         m = nx.closeness_centrality(G)
-        color = 'red'
+        # color = 'red'
     elif metrics == 'pagerank':
         m = nx.pagerank(G, alpha=0.8, max_iter=1500, tol=1e-03)
-        color = 'green'
+        # color = 'green'
     elif metrics == 'clustering':
         m = nx.clustering(G)
-        color = 'purple'
+        # color = 'purple'
     elif metrics == 'hits':
         (hubs, authorities) = nx.hits(G, max_iter=5000, tol=1e-02, normalized=True)
-        color = 'blue orange'
+        # color = 'blue orange'
         if plot:
             h_s = sorted(hubs.items(), key=lambda p: p[1])
             a_s = sorted(authorities.items(), key=lambda p: p[1])
 
             print_statistics(h_s, 'Hubs', G.mapping)
             print_statistics(a_s, 'Authorities', G.mapping)
-            plot_hits(hubs, authorities, 'Hubs Authorities', color, samples=20)
+            plot_hits(hubs, authorities, 'Hubs Authorities', METRIC_COLOR[metrics], samples=20)
         
         return (hubs, authorities)
     else:
@@ -132,9 +132,9 @@ def compute_metrics(G, metrics, plot=False):
         m = sorted(m.items(), key=lambda p: p[1])
         print_statistics(m, metrics.title(), G.mapping)
         if metrics == 'clustering':
-            plot_metrics(m, metrics, color, samples=len(m))
+            plot_metrics(m, metrics, METRIC_COLOR[metrics], samples=len(m))
         else:
-            plot_metrics(m, metrics, color)
+            plot_metrics(m, metrics, METRIC_COLOR[metrics])
     
     return m
 
@@ -176,7 +176,7 @@ def draw_graph(G, filename, name=GRAPH_NAME, node_col='blue'):
     plt.figure()
     nx.draw(G, pos=LAYOUT, node_size=10, width=0.3, node_color=node_col)
     plt.suptitle(name, fontsize=15, color='#116B17', x=0.69, y=0.05)
-    plt.savefig(IMG_DIR + filename + EXT)
+    plt.savefig(filename + EXT)
     plt.close()
 
 

@@ -101,7 +101,7 @@ def main():
     layout_thread.join()
 
     # centrality measures and graph exploration
-    draw_graph(G, 'big_graph')
+    draw_graph(G, 'imgs/big_graph')
     degree_distribution(G)
     assortativity_matrix(G)
     analyze_communities(G)
