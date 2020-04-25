@@ -191,3 +191,16 @@ def generate_random_graph(N, p):
         G.mapping[i] = i
 
     return G
+
+
+def generate_connected_random_graph(n, p):
+    G = nx.Graph()
+    fst = True
+    while len(G) < 1 or not nx.is_connected(G):
+        G = generate_random_graph(n, p)
+        if not fst:
+            print(RED + 'The graph is not connected... Trying again...' + RESET)
+        fst = False
+    print(PURPLE + '\n\tN = {}\t\tlog(N) = {:.3f}\t\tlog(N)/N = {:.3f}\tp = {:.2f}\n'.format(n, np.log(n), np.log(n)/n, p) + RESET)
+
+    return G

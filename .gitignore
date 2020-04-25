@@ -4,3 +4,4 @@ imgs
 reports
 *.out
 .vscode
+imgs/attack/videos/*.png
