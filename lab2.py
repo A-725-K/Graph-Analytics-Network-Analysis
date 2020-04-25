@@ -8,8 +8,8 @@ def main(small=False):
     G = None
 
     if small:
-        n = 100
-        p = 0.05
+        n = 500
+        p = 0.02
 
         G = generate_connected_random_graph(n, p)
     else:

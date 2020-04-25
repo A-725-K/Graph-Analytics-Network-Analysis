@@ -2,9 +2,9 @@ import copy
 
 import matplotlib
 
-from lib.common import *
-from lib.general_utils import timeit, initialize_graph
-from lib.graph_utils import generate_connected_random_graph, compute_metrics, compute_distances, draw_graph, compute_layout, print_title
+from .common import *
+from .general_utils import timeit, initialize_graph
+from .graph_utils import generate_connected_random_graph, compute_metrics, compute_distances, draw_graph, compute_layout, print_title
 
 
 GLOBAL_RESULTS = {}
