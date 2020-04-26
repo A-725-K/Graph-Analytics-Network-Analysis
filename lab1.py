@@ -2,7 +2,7 @@ import matplotlib
 
 from lib.common import *
 from lib.graph_utils import *
-from lib.general_utils import timeit, initialize_graph
+from lib.general_utils import timeit, initialize_graph, check_cli_arguments
 
 
 def compute_triangles(G):
@@ -128,20 +128,13 @@ def interactive_main():
     
 
 if __name__ == "__main__":
-    args = sys.argv
-    argc = len(args)
-    
-    if argc > 2 or argc == 0:
-        exit(RED + 'Usage: python3 lab1.py [--interactive]' + RESET)
-    
-    elif argc == 2:
-        if args[1] != '--interactive':
-            exit(RED + 'Usage: python3 lab1.py [--interactive]' + RESET)
-
+    if check_cli_arguments('interactive'):
         interactive_main()
-    
     else:
         matplotlib.use('Agg')   # to avoid concurrency problem with matplotlib,
                                 # run non graphical thread in background instead
                                 # (cannot show plots, only save images on file)
         main()
+
+
+    

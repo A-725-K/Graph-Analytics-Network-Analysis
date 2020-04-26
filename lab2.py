@@ -1,5 +1,5 @@
 from lib.attack_utils import *
-
+from lib.general_utils import check_cli_arguments
 
 @timeit
 def main(small=False):
@@ -24,20 +24,8 @@ def main(small=False):
 
 
 if __name__ == '__main__':
-    args = sys.argv
-    argc = len(args)
-
     matplotlib.use('Agg')   # to avoid concurrency problem with matplotlib,
                             # run non graphical thread in background instead
                             # (cannot show plots, only save images on file)
 
-    if argc > 2 or argc == 0:
-        exit(RED + 'Usage: python3 lab2.py [--small]' + RESET)
-    
-    elif argc == 2:
-        if args[1] != '--small':
-            exit(RED + 'Usage: python3 lab2.py [--small]' + RESET)
-        main(True)
-        
-    else:
-        main()
+    main(check_cli_arguments('small'))

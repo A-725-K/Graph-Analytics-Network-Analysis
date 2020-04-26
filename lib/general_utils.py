@@ -62,3 +62,20 @@ def initialize_graph():
             line = mf.readline()
 
     return G
+
+
+def check_cli_arguments(arg_name):
+    args = sys.argv
+    argc = len(args)
+
+    cmd_string = '--{}'.format(arg_name)
+
+    if argc > 2 or argc == 0:
+        exit(RED + 'Usage: python3 lab2.py [{}]'.format(cmd_string) + RESET)
+    
+    elif argc == 2:
+        if args[1] != cmd_string:
+            exit(RED + 'Usage: python3 lab2.py [{}]'.format(cmd_string) + RESET)
+        return True
+        
+    return False
