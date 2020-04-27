@@ -1,0 +1,7 @@
+#!/bin/bash
+
+DIRS='attack contagion'
+
+for d in $DIRS; do
+	rm -f img/$d/videos/*.png
+done

@@ -1,7 +1,6 @@
 #!/bin/bash
 
-VID_DIR='imgs/attack/videos'
-OUT_DIR="$VID_DIR/mp4/"
+VID_DIRS='imgs/attack/videos imgs/contagion/videos'
 ATTACKS='random closeness betweenness hits pagerank clustering'
 
 
@@ -12,12 +11,21 @@ function err_exit() {
 }
 
 
+function clean_old_vids() {
+	for d in $VID_DIRS; do
+		rm -f $d/mp4/*
+	done
+}
+
+
 # checking the cli arguments
 if [ $# -gt 1 ]; then
 	err_exit
 elif [ $# -eq 1 ] && [[ "$1" != '--small' ]]; then
 	err_exit
 fi
+
+#clean_old_vids
 
 # small random graph or realistic graph
 pre=''
@@ -30,16 +38,20 @@ fi
 echo "--------------------------- $pre"
 
 # creating the videos using ffmpeg
-for atk in $ATTACKS; do
-	how_many=$(ls -1 $VID_DIR | grep $pre | grep $atk | wc -l)
-	echo "$atk --- $how_many"
+for d in $VID_DIRS; do
+	for atk in $ATTACKS; do
+		how_many=$(ls -1 $d | grep $pre | grep $atk | wc -l)
+		echo "$atk --- $how_many"
 	
-	r=0
-	if [ $how_many -gt 50 ]; then
-		r=1
-	else
-		r=2
-	fi
+		r=0
+		if [ $how_many -gt 50 ]; then
+			r=1
+		else
+			r=2
+		fi
 
-	ffmpeg -r $r -i "$VID_DIR/${pre}_$atk%04d.png" -c:v libx264 -vf 'fps=60,format=yuv420p' "$OUT_DIR${pre}_$atk.mp4"
+		OUT_DIR=$d/mp4/
+		ffmpeg -r $r -i "$d/${pre}_$atk%04d.png" -c:v libx264 -vf 'fps=60,format=yuv420p' "$OUT_DIR${pre}_$atk.mp4"
+	done
 done
+
