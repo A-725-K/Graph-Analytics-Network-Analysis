@@ -10,8 +10,10 @@ import matplotlib.pyplot as plt
 
 EXT          = '.png'
 IMG_DIR      = 'imgs/'
-ATK_DIR      = IMG_DIR + 'attack/'
-ATK_VID_DIR  = ATK_DIR + 'videos/'
+ATK_DIR      = IMG_DIR  + 'attack/'
+ATK_VID_DIR  = ATK_DIR  + 'videos/'
+CONT_DIR     = IMG_DIR  + 'contagion/'
+CONT_VID_DIR = CONT_DIR + 'videos/'
 DATASET_FILE = 'datasets/fb-pages-tvshow.edges'
 MAPPING_FILE = 'datasets/fb-pages-tvshow.nodes'
 GRAPH_NAME   = 'American TV Shows Facebook pages'
@@ -35,4 +37,13 @@ METRIC_COLOR = {
     'clustering': 'purple',
     'hits': 'blue orange',
     'random': 'orange'
+}
+
+METRIC_COMPLEMENTAR = {
+    'betweenness': 'green',
+    'closeness': 'blue',
+    'pagerank': 'red',
+    'clustering': 'orange',
+    'hits': 'red black',
+    'random': 'black'
 }
