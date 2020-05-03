@@ -169,13 +169,15 @@ def compute_layout(G):
     LAYOUT = nx.kamada_kawai_layout(G)
 
 
-def draw_graph(G, filename, name=GRAPH_NAME, node_col='blue'):
+def draw_graph(G, filename, name=GRAPH_NAME, node_col='blue', xx=0.69, verbose=True):
     global LAYOUT
-    print(YELLOW + '++++++++++++++++++++++++ Drawing ' + filename + '...' + RESET)
+
+    if verbose:
+        print(YELLOW + '++++++++++++++++++++++++ Drawing ' + filename + '...' + RESET)
     
     plt.figure()
     nx.draw(G, pos=LAYOUT, node_size=10, width=0.3, node_color=node_col)
-    plt.suptitle(name, fontsize=15, color='#116B17', x=0.69, y=0.05)
+    plt.suptitle(name, fontsize=15, color='#116B17', x=xx, y=0.05)
     plt.savefig(filename + EXT)
     plt.close()
 
