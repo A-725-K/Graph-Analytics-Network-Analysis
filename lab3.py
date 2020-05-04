@@ -2,7 +2,7 @@ import queue
 
 from lib.common import *
 from lib.general_utils import initialize_graph, check_cli_arguments, timeit
-from lib.graph_utils import generate_connected_random_graph, compute_layout, compute_metrics, draw_graph, print_title
+from lib.graph_utils import generate_connected_random_graph, compute_layout, compute_metrics, draw_graph, print_title, get_neighbors_list, set_property
 
 
 def init_contagion(G, cont_type, how_much=250):
@@ -25,15 +25,6 @@ def init_contagion(G, cont_type, how_much=250):
     return metric[:how_much]
 
 
-def get_neighbors_list(G, n):
-    return list(G[n].keys())
-
-
-def set_property(G, nodes, property):
-    for n in nodes:
-        G.nodes[n][property] = True
-
-
 def draw_outbreak(G, timestamp, ctx):
     colors = []
     ctx_fields = ctx.split('_')
@@ -45,7 +36,8 @@ def draw_outbreak(G, timestamp, ctx):
         else:
             colors.append(METRIC_COLOR[selection_method] if selection_method != 'hits' else METRIC_COLOR[selection_method].split(' ')[0])
 
-    picture_name = ctx_fields[1].title() + ', P = {}/{}'.format(ctx_fields[2], ctx_fields[3]) + ', Type: ' + ctx_fields[4] + ', t = ' + str(timestamp)
+    p_str = ', P = {}{}{}'.format(ctx_fields[2], '/' if ctx_fields[1] != 'simple' else '.', ctx_fields[3])
+    picture_name = ctx_fields[1].title() + p_str + ', Type: ' + ctx_fields[4] + ', t = ' + str(timestamp)
     draw_graph(G, CONT_VID_DIR + ctx + '{:05d}'.format(timestamp), picture_name, colors, 0.4, False)
 
 
@@ -71,7 +63,7 @@ def visit_neighbourhood(G, seed, Q, cont_type, threshold):
 # type = simple|complex
 #   - simple : infect each neighbor node with a probability p
 #   - complex: get infected if #neighbor infected is > p
-def spread_contagion(G, cont_type, threshold, ctx, verbose=False):
+def spread_contagion(G, cont_type, threshold, ctx, small, verbose=False):
     if cont_type != 'simple' and cont_type != 'complex':
         exit(RED + 'Type of contagion not recognized !' + RESET)
 
@@ -79,6 +71,7 @@ def spread_contagion(G, cont_type, threshold, ctx, verbose=False):
     id_vid = 2      # identifier of frame
     tick = 1        # to avoid drawing too much pictures
     infected_per_iter = []  # keep track of the evolution of the disease
+    same_sz = 0     # heuristic optimization
 
     draw_outbreak(G, 1, ctx) # starting situation
 
@@ -94,9 +87,10 @@ def spread_contagion(G, cont_type, threshold, ctx, verbose=False):
     G.nodes[patients_zero[0]]['visited'] = True
     Q.put(patients_zero[0])
     
-    # approach similar to a BFS visit
+    # approach similar to a BFS visit, upperbound 75k iterations
+    # if after 5k time units there is no change it breaks
     N = len(G.nodes())
-    while new_infected_size < N:
+    while new_infected_size < N and timestamp < 75000:
         seed = Q.get()
 
         visit_neighbourhood(G, seed, Q, cont_type, threshold)
@@ -108,21 +102,36 @@ def spread_contagion(G, cont_type, threshold, ctx, verbose=False):
         # update results only if something happened in the network
         if old_infected_size != new_infected_size:
             infected_per_iter += [new_infected_size]
+            same_sz = 0     # reset the counter
 
             if verbose:
                 print(GREEN + 'iteration:', timestamp, '\t\tINFECTED:', new_infected_size, RESET)
             tick += 1
-            if tick < 10 or tick % 20 == 0:
-                draw_outbreak(G, id_vid, ctx)
+
+            if tick_draw(G, id_vid, tick, ctx, 20 if small else 50):
                 id_vid += 1
         else:
             if verbose:
                 print(RED + 'iteration:', timestamp, '\t\tINFECTED:', new_infected_size, RESET)
 
-        timestamp += 1
+            # if it does not happen anything for too long, unlikely it happens in the future
+            same_sz += 1
+            if same_sz == 5000:
+                break
 
+        timestamp += 1
+        
+    draw_outbreak(G, timestamp, ctx) # final situation
     print(PURPLE + '\tGenerations:', timestamp, '\tInfected:', len(get_infected(G)), RESET, '\n')
     return infected_per_iter
+
+
+def tick_draw(G, id_vid, tick, ctx, tick_cnt):
+    if tick < tick_cnt/2 or tick % tick_cnt == 0:
+        draw_outbreak(G, id_vid, ctx)
+        return True
+
+    return False
 
 
 def count_infected(G, node_list):
@@ -156,10 +165,6 @@ def get_infected(G):
     return [n for n in G.nodes if G.nodes[n]['infected']]
 
 
-def plot_contagion(infected, context, simple):
-    pass
-
-
 def build_context(small, p, selection_method, cont_type):
     name = 'small_' if small else 'big_'
     name += cont_type + '_'
@@ -173,20 +178,21 @@ def infect_network(G, selection_method, small, n_payoffs=3):
     simple_trend = {}
     complex_trend = {}
 
-    patients_zero = init_contagion(G, selection_method, 5 if small else 50)
+    patients_zero = init_contagion(G, selection_method, 5 if small else 250)
     set_property(G, patients_zero, 'infected')  # infect the nodes that start spreading the disease
     print(RED + '\nPatients 0s:' + BLUE, len(get_infected(G)), RESET)    
 
+    p_simple = 0.15 if small else 0.4
     print(YELLOW + '    ### ' + PURPLE + 'SIMPLE' + YELLOW + ' ###' + RESET)
     print(RED + '\t|- ' + BLUE + 'Target: ' + GREEN +  selection_method + RESET)
-    print(RED + '\t|- ' + BLUE + 'P = ' + GREEN + '0.15' + RESET)
-    ctx = build_context(small, 15, selection_method, 'simple')
+    print(RED + '\t|- ' + BLUE + 'P = ' + GREEN + str(p_simple) + RESET)
+    ctx = build_context(small, int(p_simple*100), selection_method, 'simple')
 
-    simple_trend['0.15'] = spread_contagion(G.copy(), 'simple', 0.15, ctx)
-    #plot_contagion(simple_trend, context, True)
+    simple_trend[str(p_simple)] = spread_contagion(G.copy(), 'simple', p_simple, ctx, small)
+    plot_contagion(len(G), simple_trend, ctx, True, small, selection_method)
 
     print(YELLOW + '    ### ' + PURPLE + 'COMPLEX' + YELLOW + ' ###' + RESET)
-    weight = 5    
+    weight = 5 if small else 8
     for i in range(n_payoffs):
         # generate payoff matrix
         pmatrix = np.eye(2)
@@ -198,15 +204,45 @@ def infect_network(G, selection_method, small, n_payoffs=3):
         print(RED + '\t|- ' + BLUE + 'P = ' + GREEN + p_str + RESET)
         ctx = build_context(small, int(pmatrix[0,0]), selection_method, 'complex')
         
-        complex_trend['p_str'] = spread_contagion(G.copy(), 'complex', p_infection, ctx)
+        complex_trend[p_str] = spread_contagion(G.copy(), 'complex', p_infection, ctx, small)
 
+        # those values are chosen empirically
         if i % 2 == 0:
-            weight += 5
+            weight += (2 if small else 3)
         else:
-            weight *= 10
-    #plot_contagion(complex_trend, context, False)
+            weight *= (5 if small else 2)
 
-    
+    plot_contagion(len(G), complex_trend, ctx, False, small, selection_method)
+
+
+def plot_contagion(n, trends, context, simple, small, selection_method):
+    legend = None
+    filename = ('small_' if small else 'big_') + ('simple_' if simple else 'complex_') + selection_method
+    title = 'Type of Contagion: {}, Target: ' + selection_method.title()
+    color = METRIC_COLOR[selection_method] if selection_method != 'hits' else METRIC_COLOR[selection_method].split(' ')[0]
+   
+    plt.figure()
+    plt.grid()
+    if simple:
+        title = title.format('Simple')
+        p_str = list(trends.keys())[0]
+        legend = ['P(c) = ' + p_str]
+        plt.plot(list(map(lambda  x: n-x, trends[p_str])), color=color)
+    else:
+        title = title.format('Complex')
+        legend = list(map(lambda s: 'b/b+a = ' + s, trends.keys()))   
+        for p_str, trend in trends.items():
+            plt.plot(list(map(lambda  x: n-x, trend)))
+
+    plt.title(title)
+    plt.xlabel('#iterations')
+    plt.ylabel('#susceptible')
+    plt.legend(legend, loc='best', fancybox=True, shadow=True)
+    plt.tight_layout()
+    plt.savefig(CONT_DIR + filename + EXT)
+    plt.close()
+        
+
 @timeit       
 def main(small=False):
     print_title('Social Contagion')
@@ -221,7 +257,7 @@ def main(small=False):
     else:
         G = initialize_graph()
     
-    # compute_layout(G)
+    compute_layout(G)
     contagions = ['random', 'hits', 'closeness', 'betweenness', 'pagerank', 'clustering']
 
     for cont in contagions:

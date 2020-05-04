@@ -206,3 +206,12 @@ def generate_connected_random_graph(n, p):
     print(PURPLE + '\n\tN = {}\t\tlog(N) = {:.3f}\t\tlog(N)/N = {:.3f}\tp = {:.2f}\n'.format(n, np.log(n), np.log(n)/n, p) + RESET)
 
     return G
+
+
+def get_neighbors_list(G, n):
+    return list(G[n].keys())
+
+
+def set_property(G, nodes, property):
+    for n in nodes:
+        G.nodes[n][property] = True
