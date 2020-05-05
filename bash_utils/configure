@@ -1,0 +1,13 @@
+#!/bin/bash
+
+rm -rf ../imgs
+
+mkdir ../imgs
+
+mkdir ../imgs/attack
+mkdir ../imgs/attack/videos
+mkdir ../imgs/attack/videos/mp4
+
+mkdir ../imgs/contagion
+mkdir ../imgs/contagion/videos
+mkdir ../imgs/contagion/videos/mp4

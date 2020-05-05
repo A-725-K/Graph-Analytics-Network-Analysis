@@ -120,7 +120,7 @@ def spread_contagion(G, cont_type, threshold, ctx, small, verbose=False):
 
         timestamp += 1
         
-    draw_outbreak(G, timestamp, ctx) # final situation
+    draw_outbreak(G, id_vid, ctx) # final situation
     print(PURPLE + '\tGenerations:', timestamp, '\tInfected:', len(get_infected(G)), RESET, '\n')
     return infected_per_iter
 
