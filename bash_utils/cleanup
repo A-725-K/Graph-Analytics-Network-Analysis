@@ -3,5 +3,6 @@
 DIRS='attack contagion'
 
 for d in $DIRS; do
-	rm -f ../imgs/$d/videos/*.png
+	echo "Deleting $d videos..."
+	find "../imgs/$d/videos" -maxdepth 1 -name "*.png" -type f -exec rm -f '{}' \;
 done

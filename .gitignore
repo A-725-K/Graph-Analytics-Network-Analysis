@@ -1,7 +1,5 @@
 *.html
 __pycache__
-imgs
 reports
 *.out
 .vscode
-imgs/attack/videos/*.png
