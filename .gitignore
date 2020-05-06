@@ -1,5 +1,4 @@
 *.html
 __pycache__
-reports
 *.out
 .vscode
