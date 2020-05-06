@@ -36,6 +36,9 @@ python3 lab3.py [--small]
 ```
 The arguments between [ ] are optional.
 
+## Dataset
+The dataset represent ***blue verified Facebook page networks*** of different categories. *Nodes* represent the **pages** and *edges* are **mutual likes** among them. You can download the dataset from here: <a href='http://networkrepository.com/fb-pages-tvshow.php'>http://networkrepository.com/fb-pages-tvshow.php</a>.
+
 ## Authors
 
-* **<i>Andrea Canepa</i>** - Computer Science, UNIGE - *Graph Analytics a.y. 2018/2019*
+* ***Andrea Canepa*** - Computer Science, UNIGE - *Graph Analytics a.y. 2018/2019*
