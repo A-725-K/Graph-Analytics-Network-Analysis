@@ -2,8 +2,8 @@ import matplotlib
 
 from lib.common import *
 from lib.general_utils import timeit, initialize_graph, check_cli_arguments
-from lib.graph_utils import draw_graph, compute_layout, compute_distances, compute_metrics
-from lib.analysis_utils import degree_distribution, assortativity_matrix, analyze_communities, print_graph_info
+from lib.analysis_utils import degree_distribution, assortativity_matrix, print_graph_info
+from lib.graph_utils import draw_graph, compute_layout, compute_distances, compute_metrics, analyze_communities
 
 
 @timeit

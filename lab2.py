@@ -1,6 +1,7 @@
 from lib.attack_utils import *
 from lib.general_utils import check_cli_arguments
 
+
 @timeit
 def main(small=False):
     print_title('Network Robustness')
